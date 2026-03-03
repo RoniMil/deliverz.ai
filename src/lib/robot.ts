@@ -51,14 +51,4 @@ export class Robot {
       missionId: this.missionId,
     };
   }
-
-  cancelMission() {
-    // shouldn't be possible as button shouldn't be enabled but validate for safety
-    if (!this.missionId) {
-      return;
-    }
-
-    this.missionId = null;
-    this.status = "idle";
-  }
 }

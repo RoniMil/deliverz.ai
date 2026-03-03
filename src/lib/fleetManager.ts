@@ -10,12 +10,13 @@ const DELIVERING_TO_COMPLETED = 45000; // pick up point -> end point
 const COMPLETED_TO_IDLE = 5000; // hand off overhead
 
 class FleetManager {
-  private robots: Robot[];
-  // because of ascending mission id, FIFO is maintained naturally
+  // because of ascending id's, FIFO is maintained naturally
+  private robots: Map<number, Robot>; // key: missionId, value mission object
+
   private missions: Map<number, Mission>; // key: missionId, value mission object
 
   constructor() {
-    this.robots = Array.from({ length: NUM_OF_ROBOTS }, () => new Robot());
+    this.robots = this.initializeRobots();
     this.missions = new Map();
     this.generateMissions();
     this.assignMissions();
@@ -23,7 +24,16 @@ class FleetManager {
   }
 
   getRobots(): Robot[] {
-    return this.robots;
+    return Array.from(this.robots.values());
+  }
+
+  private initializeRobots(): Map<number, Robot> {
+    const map = new Map<number, Robot>();
+    for (let i = 0; i < NUM_OF_ROBOTS; i++) {
+      const robot = new Robot();
+      map.set(robot.id, robot);
+    }
+    return map;
   }
 
   private generateMissions() {
@@ -43,7 +53,7 @@ class FleetManager {
       for (const [missionId, mission] of this.missions) {
         if (mission.getStatus() !== "pending") continue;
 
-        const firstIdleRobot = this.robots.find(
+        const firstIdleRobot = Array.from(this.robots.values()).find(
           (r) => r.getStatus() === "idle",
         );
         if (!firstIdleRobot) break; // no idle robots - stop checking
@@ -58,7 +68,7 @@ class FleetManager {
     // poll every second to check if any robot is ready to advance to the next state
     setInterval(() => {
       const now = Date.now();
-      for (const robot of this.robots) {
+      for (const robot of this.robots.values()) {
         // how long has the robot been in its current state
         const elapsed = now - robot.getStatusChangedAt();
 
@@ -86,7 +96,19 @@ class FleetManager {
     }, 1000);
   }
 
-  cancelMission(robot: Robot) {}
+  getRobotById(robotId: number): Robot | undefined {
+    return this.robots.get(robotId);
+  }
+
+  cancelMission(robot: Robot) {
+    const cancellableStates = ["assigned", "en_route", "delivering"];
+    if (!cancellableStates.includes(robot.getStatus())) {
+      return;
+    }
+    const missionId = robot.getMissionId()!;
+    robot.advanceState("idle");
+    this.missions.delete(missionId);
+  }
 }
 
 export const fleetManager = new FleetManager();
