@@ -28,11 +28,11 @@ Node.js + [Next.js](http://next.js) + React + Tailwind CSS
 
 ###### 1. Robot
 
-robot-fsm
+![robot-fsm](image/README/1772471162169.png)
 
 ###### 2. Mission
 
-mission-fsm
+![mission-fsm](image/README/1772477204893.png)
 
 ### Timings
 
@@ -46,7 +46,7 @@ I decided on the following timings between each mission state:
 
 ### Architecture
 
-architecture
+![architecture](image/README/1772545520760.png)
 
 The page polls every second to update its robots' states on the frontend. On the backend those states are managed by singleton class FleetManager. This class instantiates the robots in the fleet and is also responsible for instantiating missions, assigning them to robots making the simulated robots and missions move between states as time passes as planned in the FSM. The intervals between states timed as described above and every second we evaluate whether state should be changed using the time stamp when status was last changed and the defined timings for each state.  
 The robots' cancel button is only enabled if the corresponding robot currently has a mission and has not completed it yet (aka one of the states "assigned", "en_route", "delivering"). Upon clicking that button FleetManager will reset the robot's state back to "idle" and will delete the mission from memory.
