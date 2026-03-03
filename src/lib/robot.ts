@@ -1,10 +1,14 @@
-import { RobotStatus } from "./types";
+type RobotStatus =
+  | "idle"
+  | "assigned"
+  | "en_route"
+  | "delivering"
+  | "completed";
 
 export class Robot {
   readonly id: number;
   private status: RobotStatus;
   private missionId: number | null;
-  // auto increment id's, starting id is 0
   private static currentId = 0;
 
   constructor() {
@@ -19,8 +23,15 @@ export class Robot {
     if (!this.missionId) {
       return;
     }
-
     this.missionId = null;
     this.status = "idle";
+  }
+
+  toJSON() {
+    return {
+      id: this.id,
+      status: this.status,
+      missionId: this.missionId,
+    };
   }
 }
