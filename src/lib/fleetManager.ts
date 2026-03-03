@@ -1,7 +1,7 @@
 import { Robot } from "./robot";
 import { Mission } from "./mission";
 
-const NUM_OF_ROBOTS = 5;
+const NUM_OF_ROBOTS = 100;
 
 // timings
 const ASSIGNED_TO_EN_ROUTE = 5000; // route plan overhead
@@ -11,9 +11,8 @@ const COMPLETED_TO_IDLE = 5000; // hand off overhead
 
 class FleetManager {
   // because of ascending id's, FIFO is maintained naturally
-  private robots: Map<number, Robot>; // key: missionId, value mission object
-
-  private missions: Map<number, Mission>; // key: missionId, value mission object
+  private robots: Map<number, Robot>; // key: robotId, value Robot object
+  private missions: Map<number, Mission>; // key: missionId, value Mission object
 
   constructor() {
     this.robots = this.initializeRobots();
@@ -50,14 +49,14 @@ class FleetManager {
 
   private assignMissions() {
     setInterval(() => {
+      const robots = Array.from(this.robots.values());
       for (const [missionId, mission] of this.missions) {
         if (mission.getStatus() !== "pending") continue;
 
-        const firstIdleRobot = Array.from(this.robots.values()).find(
-          (r) => r.getStatus() === "idle",
-        );
+        const firstIdleRobot = robots.find((r) => r.getStatus() === "idle");
         if (!firstIdleRobot) break; // no idle robots - stop checking
 
+        // prevents mission from being assigned to other robots
         mission.setStatus("in_progress");
         firstIdleRobot.assignMission(missionId);
       }
@@ -106,6 +105,7 @@ class FleetManager {
       return;
     }
     const missionId = robot.getMissionId()!;
+    // cancelling mission deletes it and resets robot to beginning state
     robot.advanceState("idle");
     this.missions.delete(missionId);
   }
